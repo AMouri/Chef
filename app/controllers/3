@@ -1,0 +1,43 @@
+class ProgramsController < ApplicationController
+	def new
+	end
+	def create
+		method_loc = Hash.new
+		parse_lines
+	end
+	
+	private
+		def parse_lines
+			program = params[:post][:code].split("\r\n")
+			render text: program
+	 		
+		end
+		def mem_method
+			in_method = false
+			saw_body = false
+			method_begin = false
+			index = 0
+			for line in program
+				if !in_method or !(line.split(' ')[0] == "Serves" or line == "")
+					method_loc[line.downcase] = index
+					in_method = true
+					method_begin = false
+					saw_body = false
+				else
+					if saw_body
+						if !(line.split(' ')[0] == "Serves" or line == "")
+							in_method = false
+						end
+					else
+						if line == "Method."
+							method_begin = true
+						else if method_begin
+							saw_body = true
+						end
+					end
+				end
+				index = index + 1
+			end
+			logger.info method_loc.inspect
+		end
+end
